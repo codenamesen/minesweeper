@@ -1,20 +1,24 @@
-//This constant variable holds the pipe character used to create the grid
-const blankLine = '  |   |  ';
+//Arrow function used to print the board
+const printBoard = board => {
+  console.log('Current Board:');
+  console.log(board[0].join('|'));
+  console.log(board[1].join('|'));
+  console.log(board[2].join('|'));
+};
 
-console.log('This is what an empty board would look like:');
+//________________Create an empty 3 X 3 board with three single space in each of the nested arrays_________________
+const board = [
+          [' ', ' ', ' '],
+          [' ', ' ', ' '],
+          [' ', ' ', ' ']
+        ];
 
-console.log(blankLine);
-console.log(blankLine);
-console.log(blankLine);
 
-//This constant variable holds the guess(bomb) in the first square
-const guessLine = '1 |   |  ';
+//_______________Display an empty board on the console.__________________________
+printBoard(board);
 
-//This constant variable holds the revealed bomb
-const bombLine = '  | B |  ';
+//_______________Set the second element of the first row________________
+board[0][1] = '1';
+board[2][2] = 'B';
 
-console.log('This is what a board with a guess and a bomb on it would look like:');
-
-console.log(guessLine);
-console.log(bombLine);
-console.log(blankLine);
+printBoard(board);
