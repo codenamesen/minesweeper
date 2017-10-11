@@ -1,24 +1,22 @@
-//Arrow function used to print the board
-const printBoard = board => {
-  console.log('Current Board:');
-  console.log(board[0].join('|'));
-  console.log(board[1].join('|'));
-  console.log(board[2].join('|'));
+//This will store a function that will generate a blank board of a given size to hold the player's guesses
+const generatePlayerBoard = (numberOfRows, numberOfColumns) => {
+  //for storing the dynamically generated board
+  let board = [];
+  //for loop interating through number of numberOfRows
+  for (let numberOfRowsIndex = 0; numberOfRowsIndex < numberOfRows; numberOfRowsIndex++) {
+    //for storing the dynamically generated row
+    let row = [];
+    //for interating through numberOfColumns
+    for (let numberOfColumnsIndex = 0; numberOfColumnsIndex < numberOfColumns; numberOfColumnsIndex++) {
+      row.push(' ');
+    }
+
+    //push all the rows with their respective column
+    board.push(row);
+  }
+
+  //return the finally generated board
+  return board;
 };
 
-//________________Create an empty 3 X 3 board with three single space in each of the nested arrays_________________
-const board = [
-          [' ', ' ', ' '],
-          [' ', ' ', ' '],
-          [' ', ' ', ' ']
-        ];
-
-
-//_______________Display an empty board on the console.__________________________
-printBoard(board);
-
-//_______________Set the second element of the first row________________
-board[0][1] = '1';
-board[2][2] = 'B';
-
-printBoard(board);
+//console.log(generatePlayerBoard(6, 4));
