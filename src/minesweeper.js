@@ -1,131 +1,195 @@
-//This will store a function that will generate a blank board of a given size to hold the player's guesses
-const generatePlayerBoard = (numberOfRows, numberOfColumns) => {
-  //for storing the dynamically generated board
-  let board = [];
-  //for loop interating through number of numberOfRows
-  for (let numberOfRowsIndex = 0; numberOfRowsIndex < numberOfRows; numberOfRowsIndex++) {
-    //for storing the dynamically generated row
-    let row = [];
-    //for interating through numberOfColumns
-    for (let numberOfColumnsIndex = 0; numberOfColumnsIndex < numberOfColumns; numberOfColumnsIndex++) {
-      //push blank space in the row
-      row.push(' ');
-    }
-
-    //push all the rows with their respective column
-    board.push(row);
+//The main class used to call the methods in Board class
+class Game {
+  //This constructor creates a new instance of the class Board
+  constructor(numberOfRows, numberOfColumns, numberOfBombs) {
+    this._board = new Board(numberOfRows, numberOfColumns, numberOfBombs);
   }
 
-  //return the finally generated board
-  return board;
-};
+  //This method starts a session of Minesweeper
+  playMove(rowIndex, columnIndex) {
+    this._board.flipTile(rowIndex, columnIndex);
 
-//console.log(generatePlayerBoard(6, 4));
+    //This control statement checks if the flipped tile has a bomb
+    if(this._board.playerBoard[rowIndex][columnIndex] === 'B') {
+      console.log(`The game is over!`);
+      console.log(`Current Board: `)
+      this._board.print();
 
-//This will store a function that will generate a board containing the bombs
-const generateBombBoard = (numberOfRows, numberOfColumns, numberOfBombs) => {
-  //for storing the dynamically generated board
-  let board = [];
-  //for loop interating through number of numberOfRows
-  for (let numberOfRowsIndex = 0; numberOfRowsIndex < numberOfRows; numberOfRowsIndex++) {
-    //for storing the dynamically generated row
-    let row = [];
-    //for interating through numberOfColumns
-    for (let numberOfColumnsIndex = 0; numberOfColumnsIndex < numberOfColumns; numberOfColumnsIndex++) {
-      //push null in the rows
-      row.push(null);
-    }
+    } else if(!this._board.hasSafeTile()) {  /*Checks whether any more safe tiles are left*/
+      console.log(`You Won the Game!`);
+      console.log(`Entire Board: `)
+      //prints the entire board
+      this._board.print();
 
-    //push all the rows with their respective column
-    board.push(row);
-  }
-
-  //This keeps the track of no of bombs placed
-  let numberOfBombsPlaced = 0;
-  while (numberOfBombsPlaced < numberOfBombs) {
-    //Generate random row index
-    let randomRowIndex = Math.floor(Math.random() * numberOfRows);
-    //Generate random column index
-    let randomColumnIndex = Math.floor(Math.random() * numberOfColumns);
-    //Checks if the square already has a bomb
-    if (board[randomRowIndex][randomColumnIndex] !== 'B') {
-      //Place a Bomb at the random row and column
-      board[randomRowIndex][randomColumnIndex] = 'B';
-      //Increment the counter
-      numberOfBombsPlaced++;
+    } else {  /*This is executed if there is still safe tile left and a bomb tile has not been clicked*/
+      console.log(`Current Board: `)
+      this._board.print();
     }
   }
-  //return the finally generated board
-  //This has the flaw of placeing bomb in place already consisting bomb. This needs to be fixed.
-  return board;
-};
+}
 
-//This constant holds the function that calculates the no. of adjacent bombs to a squeare
-const getNumberOfNeighbourBombs = (bombBoard, rowIndex, columnIndex) => {
-  //This constant stores the array which represents the neighbouring 8 squares
-  const neighborOffsets = [[-1, -1], [-1,0], [-1, 1], [0, -1], [0, 0], [0, 1], [1, 0], [1, 1]];
-  //This constant stores the total no. of rows present in the board
-  const numberOfRows = bombBoard.length;
-  //This constant stores the total no. of column present in the board
-  const numberOfColumns = bombBoard[0].length;
-  //This constatnt will be used to store the no. of bombs present to the adjacent of the squeare clicked
-  let numberOfBombs = 0;
+//Creates a class named Board
+class Board {
+  //Used to create an instance of the Board, the arguments determines the size and the no. of Bombs present
+  constructor(numberOfRows, numberOfColumns, numberOfBombs) {
+    this._numberOfBombs = numberOfBombs;
 
-  //This iterator will check all the neighboring squares for the presence of bombs
-  neighborOffsets.forEach(offset => {
-    //Add the row
-    const neighborRowIndex = rowIndex + offset[0];
-    const neighborColumnIndex = columnIndex + offset[1];
-    //Checks if the adjacent squeares do exists
-    if (neighborRowIndex >= 0 && neighborRowIndex < numberOfRows && neighborColumnIndex >= 0 && neighborColumnIndex < numberOfColumns) {
-      //Checks if bomb is present in the selected adjacent square
-      if (bombBoard[neighborRowIndex][neighborColumnIndex] === 'B') {
-        //If bomb is present the counter is incremented by one.
-        numberOfBombs++;
+    //calculates the total number of tiles available and stores it in the variable
+    this._numberOfTiles = numberOfRows * numberOfColumns;
+    //Calls the function generatePlayerBoard function to creates the player board and stores it to the variable
+    this._playerBoard = Board.generatePlayerBoard(numberOfRows, numberOfColumns);
+    //Calls the function generatePlayerBoard function to creates the bomb board and stores it to the variable
+    this._bombBoard = Board.generateBombBoard(numberOfRows, numberOfColumns, numberOfBombs);
+  }
+
+  //Getter Method to access the variable _playerBoard
+  get playerBoard() {
+    return this._playerBoard;
+  }
+
+  //Method that flips the tile
+  flipTile(rowIndex, columnIndex) {
+    //Checks if the flipped tile is empty
+    if (this.playerBoard[rowIndex][columnIndex] !== ' ') {
+      console.log('This tile has already been flipped');
+      return;
+
+      //Checks if the flipped tile has a bomb in the corresponding square in bombBoard
+    } else if (this._bombBoard[rowIndex][columnIndex] === 'B') {
+      //If there is a bomb in the boamboard mark it with 'B' in the corresponding index of the playerBoard
+      this.playerBoard[rowIndex][columnIndex] = 'B';
+
+    } else {
+      //Puts the total no of bombs present in the neighouring squares of the bombboard
+      this.playerBoard[rowIndex][columnIndex] = this.getNumberOfNeighbourBombs(rowIndex, columnIndex);
+    }
+
+    //Return the no of tiles not flipped yet
+    this._numberOfTiles--;
+  }
+
+  //This method calculates the no. of adjacent bombs to a squeare
+  getNumberOfNeighbourBombs(rowIndex, columnIndex) {
+    //This constant stores the array which represents the neighbouring 8 squares
+    const neighborOffsets = [[-1, -1], [-1,0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+
+    //This constant stores the total no. of rows present in the board
+    const numberOfRows = this._bombBoard.length;
+    //This constant stores the total no. of column present in the board
+    const numberOfColumns = this._bombBoard[0].length;
+
+    //This constatnt will be used to store the no. of bombs present to the adjacent of the squeare clicked
+    let numberOfBombs = 0;
+
+    //This iterator will check all the neighboring squares for the presence of bombs
+    neighborOffsets.forEach(offset => {
+      //Add the rowIndex with the first value in the offset array to get the row value of the adjoining square
+      const neighborRowIndex = rowIndex + offset[0];
+
+      //Add the rowIndex with the first value in the offset array to get the row value of the adjoining square
+      const neighborColumnIndex = columnIndex + offset[1];
+
+      //Checks if the adjacent square do exists
+      if (neighborRowIndex >= 0 && neighborRowIndex < numberOfRows && neighborColumnIndex >= 0 && neighborColumnIndex < numberOfColumns) {
+
+        //Checks if bomb is present in the selected adjacent square
+        if (this._bombBoard[neighborRowIndex][neighborColumnIndex] === 'B') {
+          //If bomb is present the counter is incremented by one.
+          numberOfBombs++;
+        }
+      }
+    });
+
+    //Returns totoal no. of Bomb present in the adjacent squares
+    return numberOfBombs;
+  };
+
+  //This method is used to inform the user that there are no more non-bomb/safe tiles
+  hasSafeTile() {
+    //This statements checks the number of tiles not flipped against the number of bombs present
+    return this._numberOfTiles !== this._numberOfBombs;
+  }
+
+  //This function will print the board.
+  print() {
+    console.log(this.playerBoard.map(row => row.join('|')).join('\n'));
+  }
+
+  //This function will generate a blank board of a given size to hold the player's guesses
+  static generatePlayerBoard(numberOfRows, numberOfColumns) {
+    //for storing the dynamically generated board
+    let board = [];
+
+    //for loop interating through number of numberOfRows
+    for (let numberOfRowsIndex = 0; numberOfRowsIndex < numberOfRows; numberOfRowsIndex++) {
+
+      //for storing the dynamically generated row
+      let row = [];
+
+      //for interating through numberOfColumns
+      for (let numberOfColumnsIndex = 0; numberOfColumnsIndex < numberOfColumns; numberOfColumnsIndex++) {
+        //push blank space in the row array
+        row.push(' ');
+      }
+
+      //push all the completed row with to the board array
+      board.push(row);
+    }
+
+    //return the finally generated board array
+    return board;
+  }
+  //console.log(generatePlayerBoard(6, 4));
+
+
+  //This function will generate a board containing the bombs
+  static generateBombBoard(numberOfRows, numberOfColumns, numberOfBombs) {
+
+    //for storing the dynamically generated board
+    let board = [];
+
+    //for loop interating through number of numberOfRows
+    for (let numberOfRowsIndex = 0; numberOfRowsIndex < numberOfRows; numberOfRowsIndex++) {
+      //for storing the dynamically generated row
+
+      let row = [];
+
+      //for interating through numberOfColumns
+      for (let numberOfColumnsIndex = 0; numberOfColumnsIndex < numberOfColumns; numberOfColumnsIndex++) {
+        //push null in the rows
+        row.push(null);
+      }
+
+      //push all the rows with their respective column
+      board.push(row);
+    }
+
+    //This variable keeps the track of no of bombs placed
+    let numberOfBombsPlaced = 0;
+
+    while (numberOfBombsPlaced < numberOfBombs) {
+
+      //Generate random row index
+      let randomRowIndex = Math.floor(Math.random() * numberOfRows);
+
+      //Generate random column index
+      let randomColumnIndex = Math.floor(Math.random() * numberOfColumns);
+
+      //Checks if the square already has a bomb
+      if (board[randomRowIndex][randomColumnIndex] !== 'B') {
+
+        //Place a Bomb at the random row and column
+        board[randomRowIndex][randomColumnIndex] = 'B';
+        //Increment the counter
+        numberOfBombsPlaced++;
       }
     }
-  });
 
-  //Returns totoal no. of Bomb present in the adjacent squares
-  return numberOfBombs;
-};
-
-//This constant stores the function that allows the user to filp tile.
-const flipTile = (playerBoard, bombBoard, rowIndex, columnIndex) => {
-  //Checks if the flipped tile is empty
-  if (playerBoard[rowIndex][columnIndex] !== ' ') {
-    console.log('This tile has already been flipped');
-    return;
-    //Checks if the flipped tile has a bomb in the corresponding square in bombBoard
-  } else if (bombBoard[rowIndex][columnIndex] === 'B') {
-    //If there is a bomb in the boamboard mark it with 'B' in the playerBoard
-    playerBoard[rowIndex][columnIndex] = 'B';
-  } else {
-    //Puts the total no of bombs present in the neighouring squares
-    playerBoard[rowIndex][columnIndex] = getNumberOfNeighbourBombs(bombBoard, rowIndex, columnIndex);
+    //return the finally generated board containing bombs placed randomly
+    return board;
   }
-};
+}
 
+const g = new Game(3, 3, 3);
 
-//This constant will hold the function that will print the board.
-const printBoard = board => console.log(board.map(row => row.join('|')).join('\n'));
-
-//This generated the two board with the arguments passed to them
-let playerBoard = generatePlayerBoard(3, 4);
-let bombBoard = generateBombBoard(3, 4, 5);
-
-//Prints the Player board
-console.log('Player Board: ');
-printBoard(playerBoard);
-
-//Prints the Bomb board
-console.log('Bomb Board: ');
-printBoard(bombBoard);
-
-//call the fliptile function with the board and the idexes for flipping the tile.
-flipTile(playerBoard, bombBoard, 0, 0);
-
-console.log('Updated Player Board: ')
-
-//Prints the updated Player board
-printBoard(playerBoard);
+g.playMove(0, 1);
