@@ -1,35 +1,5 @@
-//The main class used to call the methods in Board class
-class Game {
-  //This constructor creates a new instance of the class Board
-  constructor(numberOfRows, numberOfColumns, numberOfBombs) {
-    this._board = new Board(numberOfRows, numberOfColumns, numberOfBombs);
-  }
-
-  //This method starts a session of Minesweeper
-  playMove(rowIndex, columnIndex) {
-    this._board.flipTile(rowIndex, columnIndex);
-
-    //This control statement checks if the flipped tile has a bomb
-    if(this._board.playerBoard[rowIndex][columnIndex] === 'B') {
-      console.log(`The game is over!`);
-      console.log(`Current Board: `)
-      this._board.print();
-
-    } else if(!this._board.hasSafeTile()) {  /*Checks whether any more safe tiles are left*/
-      console.log(`You Won the Game!`);
-      console.log(`Entire Board: `)
-      //prints the entire board
-      this._board.print();
-
-    } else {  /*This is executed if there is still safe tile left and a bomb tile has not been clicked*/
-      console.log(`Current Board: `)
-      this._board.print();
-    }
-  }
-}
-
-//Creates a class named Board
-class Board {
+//Creates a class named Board and exports it as a module
+export class Board {
   //Used to create an instance of the Board, the arguments determines the size and the no. of Bombs present
   constructor(numberOfRows, numberOfColumns, numberOfBombs) {
     this._numberOfBombs = numberOfBombs;
@@ -190,6 +160,6 @@ class Board {
   }
 }
 
-const g = new Game(3, 3, 3);
+//const g = new Game(3, 3, 3);
 
-g.playMove(0, 1);
+//g.playMove(0, 1);
